@@ -86,7 +86,7 @@ type Approved @entity(immutable: true) {
   context: Bytes # bytes32
   name: Bytes # bytes32
   node: Bytes # bytes32
-  delegate: Bytes! # address
+  operator: Bytes! # address
   approved: Boolean! # boolean
   blockNumber: BigInt!
   blockTimestamp: BigInt!

@@ -3,32 +3,22 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum
-    name: L2PublicResolver
-    network: base-testnet
+    name: DelegatableResolver
+    network: mainnet
     source:
-      abi: L2PublicResolver
-      startBlock: 8881000
+      address: "0xD924A655Fb2D31FBF2faA0748C1739b45189EdE5"
+      abi: DelegatableResolver
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - AddrChanged
-        - AddressChanged
-        - TextChanged
+        - Approved
       abis:
-        - name: L2PublicResolver
-          file: ./abis/L2PublicResolver.json
+        - name: DelegatableResolver
+          file: ./abis/DelegatableResolver.json
       eventHandlers:
-        - event: AddrChanged(bytes,bytes,indexed bytes32,address)
-          handler: handleAddrChanged
-        - event: AddressChanged(bytes,bytes,indexed bytes32,uint256,bytes)
-          handler: handleAddressChanged
-        - event: TextChanged(bytes,bytes,indexed bytes32,indexed string,string,string)
-          handler: handleTextChanged
-        - event: ContenthashChanged(bytes,bytes,indexed bytes32,bytes)
-          handler: handleContentHashChanged
-        - event: Approved(bytes,bytes,indexed address,indexed bool)
-          handler: handleApproved
+        - event: Approval(indexed bytes32,indexed address,bytes,bool)
+          handler: handleApproval
 
       file: ./src/l-2-public-resolver.ts
