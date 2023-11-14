@@ -1,0 +1,34 @@
+specVersion: 0.0.4
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: L2PublicResolver
+    network: base-testnet
+    source:
+      abi: L2PublicResolver
+      startBlock: 8881000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - AddrChanged
+        - AddressChanged
+        - TextChanged
+      abis:
+        - name: L2PublicResolver
+          file: ./abis/L2PublicResolver.json
+      eventHandlers:
+        - event: AddrChanged(bytes,bytes,indexed bytes32,address)
+          handler: handleAddrChanged
+        - event: AddressChanged(bytes,bytes,indexed bytes32,uint256,bytes)
+          handler: handleAddressChanged
+        - event: TextChanged(bytes,bytes,indexed bytes32,indexed string,string,string)
+          handler: handleTextChanged
+        - event: ContenthashChanged(bytes,bytes,indexed bytes32,bytes)
+          handler: handleContentHashChanged
+        - event: Approved(bytes,bytes,indexed address,indexed bool)
+          handler: handleApproved
+
+      file: ./src/l-2-public-resolver.ts
