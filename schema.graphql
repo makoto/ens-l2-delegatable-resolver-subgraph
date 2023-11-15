@@ -81,7 +81,7 @@ type ContenthashChanged @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type Approved @entity(immutable: true) {
+type Approval @entity(immutable: true) {
   id: Bytes!
   context: Bytes # bytes32
   name: Bytes # bytes32

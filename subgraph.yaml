@@ -6,19 +6,20 @@ dataSources:
     name: DelegatableResolver
     network: mainnet
     source:
-      address: "0xD924A655Fb2D31FBF2faA0748C1739b45189EdE5"
       abi: DelegatableResolver
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - Approved
+        - Approval
+        - AddrChanged
       abis:
         - name: DelegatableResolver
           file: ./abis/DelegatableResolver.json
       eventHandlers:
         - event: Approval(indexed bytes32,indexed address,bytes,bool)
           handler: handleApproval
-
+        - event: AddrChanged(indexed bytes32,address)
+          handler: handleAddrChanged
       file: ./src/l-2-public-resolver.ts

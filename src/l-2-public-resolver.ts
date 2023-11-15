@@ -5,13 +5,14 @@ import {
   ContenthashChanged as ContenthashChangedEvent,
   Approval as ApprovalEvent
 } from "../generated/DelegatableResolver/DelegatableResolver"
+import { ethereum } from '@graphprotocol/graph-ts'
 
 import {
   AddrChanged,
   AddressChanged,
   ContenthashChanged,
   TextChanged,
-  Approved,
+  Approval,
   Resolver,
   Domain,
   Account
@@ -25,11 +26,13 @@ import {
 } from './utils'
 
 export function handleApproval(event: ApprovalEvent): void {
-  log.error("****hello", []);
-  let entity = new Approved(
+  log.info("****hello3", []);
+  let entity = new Approval(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
+  let context = Bytes.fromHexString(event.address.toHexString())
   let node = event.params.node
+  let name = event.params.name
   let operator = event.params.operator
   let approved = event.params.approved
   entity.node = node
@@ -40,82 +43,84 @@ export function handleApproval(event: ApprovalEvent): void {
   entity.blockTimestamp = event.block.timestamp
   entity.transactionHash = event.transaction.hash
   entity.save()
-  // handleName(node, context, name)
-  // let domainId = createDomainID(node, context);
-  // let domain = Domain.load(domainId);
-  // if(domain){
-  //   let delegateAccount = Account.load(delegate.toHexString());
-  //   if(!delegateAccount){
-  //     delegateAccount = new Account(delegate.toHexString());
-  //   }
-  //   if(domain.delegates == null) {
-  //     if(approved === true){
-  //       domain.delegates = [delegateAccount.id];
-  //       domain.save();  
-  //     }
-  //   } else {
-  //     let delegates = domain.delegates!
-  //     if(approved === true){
-  //       if(!delegates.includes(delegateAccount.id)){        
-  //         delegates.push(delegateAccount.id)
-  //         domain.delegates = delegates
-  //         domain.save()
-  //       }  
-  //     }else{
-  //       const index = delegates.indexOf(delegateAccount.id)
-  //       if(index >= 0){
-  //         // Remove delegation
-  //         delegates.splice(index, 1)
-  //         domain.delegates = delegates
-  //         domain.save()
-  //       }  
-  //     }
-  //   }
-  //   delegateAccount.save()
-  // }
+  handleName(node, context, name)
+  let domainId = createDomainID(node, context);
+  let domain = Domain.load(domainId);
+  if(domain){
+    let delegateAccount = Account.load(operator.toHexString());
+    if(!delegateAccount){
+      delegateAccount = new Account(operator.toHexString());
+    }
+    if(domain.delegates == null) {
+      if(approved === true){
+        domain.delegates = [delegateAccount.id];
+        domain.save();  
+      }
+    } else {
+      let delegates = domain.delegates!
+      if(approved === true){
+        if(!delegates.includes(delegateAccount.id)){        
+          delegates.push(delegateAccount.id)
+          domain.delegates = delegates
+          domain.save()
+        }  
+      }else{
+        const index = delegates.indexOf(delegateAccount.id)
+        if(index >= 0){
+          // Remove delegation
+          delegates.splice(index, 1)
+          domain.delegates = delegates
+          domain.save()
+        }  
+      }
+    }
+    delegateAccount.save()
+  }
 }
 
-// export function handleName(node:Bytes, context:Bytes, dnsName:Bytes): void { 
-//   let domainId = createDomainID(node, context);
-//   let domain = Domain.load(domainId);
-//   if(!domain){
-//     domain = new Domain(domainId)
-//   }
-//   let decoded = decodeName(dnsName)
-//   if(decoded){    
-//     let labelName = decoded[0]
-//     let labelHex = encodeHex(labelName)    
-//     let labelhash = crypto.keccak256(byteArrayFromHex(labelHex)).toHex()
-//     let name = decoded ? decoded[1] : ''
-//     let parentEncoded = decoded ? decoded[3] : ''
-//     let parentNode = namehash(Bytes.fromHexString(parentEncoded))
-//     domain.name = name
-//     domain.labelName = labelName
-//     domain.labelhash = Bytes.fromHexString(labelhash)
-//     let parentDomainId = createDomainID(parentNode, context);
-//     let parentDomain = createDomain(
-//       parentNode,
-//       context
-//     )
-//     parentDomain.save()
-//     domain.parent = parentDomainId
-//     if(parentDomain.name == null){
-//       let decodedParent = decodeName(Bytes.fromHexString(parentEncoded))
-//       let parentLabelName = decodedParent ? decodedParent[0] : ''
-//       let parentLabelHex = encodeHex(parentLabelName)
-//       let parentLabelhash = crypto.keccak256(byteArrayFromHex(parentLabelHex)).toHex()
-//       let parentName = decodedParent ? decodedParent[1] : ''
-//       let parentParentName = decodedParent ? decodedParent[2] : ''
-//       parentDomain.name = parentName
-//       parentDomain.labelName = parentLabelName
-//       parentDomain.labelhash = Bytes.fromHexString(parentLabelhash)
-//     }
-//     parentDomain.save()
-//   }
-//   domain.save()
-// }
+export function handleName(node:Bytes, context:Bytes, dnsName:Bytes): void { 
+  let domainId = createDomainID(node, context);
+  let domain = Domain.load(domainId);
+  if(!domain){
+    domain = new Domain(domainId)
+  }
+  let decoded = decodeName(dnsName)
+  if(decoded){    
+    let labelName = decoded[0]
+    let labelHex = encodeHex(labelName)    
+    let labelhash = crypto.keccak256(byteArrayFromHex(labelHex)).toHex()
+    let name = decoded ? decoded[1] : ''
+    let parentEncoded = decoded ? decoded[3] : ''
+    let parentNode = namehash(Bytes.fromHexString(parentEncoded))
+    domain.name = name
+    domain.labelName = labelName
+    domain.labelhash = Bytes.fromHexString(labelhash)
+    let parentDomainId = createDomainID(parentNode, context);
+    let parentDomain = createDomain(
+      parentNode,
+      context
+    )
+    parentDomain.save()
+    domain.parent = parentDomainId
+    if(parentDomain.name == null){
+      let decodedParent = decodeName(Bytes.fromHexString(parentEncoded))
+      let parentLabelName = decodedParent ? decodedParent[0] : ''
+      let parentLabelHex = encodeHex(parentLabelName)
+      let parentLabelhash = crypto.keccak256(byteArrayFromHex(parentLabelHex)).toHex()
+      let parentName = decodedParent ? decodedParent[1] : ''
+      let parentParentName = decodedParent ? decodedParent[2] : ''
+      parentDomain.name = parentName
+      parentDomain.labelName = parentLabelName
+      parentDomain.labelhash = Bytes.fromHexString(parentLabelhash)
+    }
+    parentDomain.save()
+  }
+  domain.save()
+}
 
-// export function handleAddrChanged(event: AddrChangedEvent): void {
+export function handleAddrChanged(event: AddrChangedEvent): void {
+  log.info("****hello4", []);
+}
 //   let entity = new AddrChanged(
 //     event.transaction.hash.concatI32(event.logIndex.toI32())
 //   )
@@ -270,22 +275,23 @@ export function handleApproval(event: ApprovalEvent): void {
 //   return resolver as Resolver;
 // }
 
-// function createDomain(node: Bytes, context: Bytes, resolverId: string = ''): Domain{
-//   let domain = new Domain(createDomainID(node, context));  
-//   domain.namehash = node;
-//   if(resolverId != ''){
-//     domain.resolver = resolverId;
-//     domain.context = context;
-//   }
-//   let account = Account.load(context.toHexString());
-//   if(!account){
-//     account = new Account(context.toHexString());
-//   }
-//   domain.owner = account.id;
-//   domain.save()
-//   account.save()
-//   return domain
-// }
+function createDomain(node: Bytes, context: Bytes, resolverId: string = ''): Domain{
+  let domain = new Domain(createDomainID(node, context));  
+  domain.namehash = node;
+  if(resolverId != ''){
+    domain.resolver = resolverId;
+    domain.context = context;
+  }
+  let account = Account.load(context.toHexString());
+  if(!account){
+    account = new Account(context.toHexString());
+  }
+  domain.owner = account.id;
+  domain.context = context;
+  domain.save()
+  account.save()
+  return domain
+}
 
 // function createResolverID(node: Bytes, context: Bytes, resolver: Address): string {
 //   return resolver
@@ -301,9 +307,9 @@ export function handleApproval(event: ApprovalEvent): void {
 //     );
 // }
 
-// function createDomainID(node: Bytes, context: Bytes): string {
-//   return context
-//     .toHexString()
-//     .concat("-")
-//     .concat(node.toHexString());
-// }
+function createDomainID(node: Bytes, context: Bytes): string {
+  return context
+    .toHexString()
+    .concat("-")
+    .concat(node.toHexString());
+}
