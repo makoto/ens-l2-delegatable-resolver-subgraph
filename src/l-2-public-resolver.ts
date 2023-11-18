@@ -30,11 +30,16 @@ export function handleApproval(event: ApprovalEvent): void {
   let entity = new Approval(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
+  let decoded = decodeName(event.params.name)
+  let name = ''
+  if(decoded){    
+    name = decoded ? decoded[1] : ''
+  }
   let context = Bytes.fromHexString(event.address.toHexString())
   let node = event.params.node
-  let name = event.params.name
   let operator = event.params.operator
   let approved = event.params.approved
+  entity.name = name
   entity.node = node
   entity.context = context
   entity.operator = operator
@@ -44,7 +49,6 @@ export function handleApproval(event: ApprovalEvent): void {
   entity.blockTimestamp = event.block.timestamp
   entity.transactionHash = event.transaction.hash
   entity.save()
-  handleName(node, context, name)
   let domainId = createDomainID(node, context);
   let domain = Domain.load(domainId);
   if(domain){
@@ -142,7 +146,6 @@ export function handleAddrChanged(event: AddrChangedEvent): void {
   domain.save()
   // handleName(event.params.node, context, event.params.name)
   entity.context = context
-  // entity.name = event.params.name
   entity.node = event.params.node
   entity.a = event.params.a
 

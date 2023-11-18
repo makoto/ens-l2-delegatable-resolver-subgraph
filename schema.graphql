@@ -84,7 +84,7 @@ type ContenthashChanged @entity(immutable: true) {
 type Approval @entity(immutable: true) {
   id: Bytes!
   context: Bytes # bytes32
-  name: Bytes # bytes32
+  name: String
   node: Bytes # bytes32
   operator: Bytes! # address
   approved: Boolean! # boolean
