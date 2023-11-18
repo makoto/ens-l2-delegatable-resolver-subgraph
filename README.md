@@ -2,26 +2,34 @@
 
 ## Setup
 
-Please refer to https://github.com/ensdomains/context-resolver
 
 ## Example queries
 
 ```
-  query{
-    domains{
-      name
+query{
+    domains(first:5){
+      id
       context
-      parent
-      subdomains{
-        id
-      }
       resolver{
         addr
-        texts
-        con
-        coinTypes
-        contentHash
+      }
+      delegates{
+        id
       }
     }
+    accounts(first:5){
+      id
+      delegated{
+        id
+        name
+      }
+    }
+    approvals(first:5){
+      id
+      name
+      context
+      blockTimestamp
+      blockNumber
+    }
   }
-```
+  ```
