@@ -4,9 +4,10 @@ schema:
 dataSources:
   - kind: ethereum
     name: DelegatableResolver
-    network: mainnet
+    network: optimism-goerli
     source:
       abi: DelegatableResolver
+      startBlock: 17095809
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
