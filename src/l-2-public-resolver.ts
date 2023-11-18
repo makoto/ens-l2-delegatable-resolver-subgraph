@@ -44,7 +44,7 @@ export function handleApproval(event: ApprovalEvent): void {
   entity.context = context
   entity.operator = operator
   entity.approved = approved
-
+  handleName(node, context, event.params.name)
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
   entity.transactionHash = event.transaction.hash
