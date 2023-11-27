@@ -37,7 +37,6 @@ type Account @entity {
 type AddrChanged @entity(immutable: true) {
   id: Bytes!
   context: Bytes # bytes32
-  name: Bytes # bytes32
   node: Bytes # bytes32
   a: Bytes! # address
   blockNumber: BigInt!
@@ -48,7 +47,6 @@ type AddrChanged @entity(immutable: true) {
 type AddressChanged @entity(immutable: true) {
   id: Bytes!
   context: Bytes! # bytes32
-  name: Bytes! # bytes32
   node: Bytes! # bytes32
   coinType: BigInt # uint256
   newAddress: Bytes! # bytes
@@ -60,7 +58,6 @@ type AddressChanged @entity(immutable: true) {
 type TextChanged @entity(immutable: true) {
   id: Bytes!
   context: Bytes! # bytes32
-  name: Bytes! # bytes32
   node: Bytes! # bytes32
   indexedKey: String # string
   key: String! # string
@@ -72,7 +69,6 @@ type TextChanged @entity(immutable: true) {
 type ContenthashChanged @entity(immutable: true) {
   id: Bytes!
   context: Bytes! # bytes32
-  name: Bytes! # bytes32
   node: Bytes! # bytes32
   indexedKey: String # string
   hash: Bytes!
