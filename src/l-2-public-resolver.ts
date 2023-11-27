@@ -5,7 +5,6 @@ import {
   ContenthashChanged as ContenthashChangedEvent,
   Approval as ApprovalEvent
 } from "../generated/DelegatableResolver/DelegatableResolver"
-import { ethereum } from '@graphprotocol/graph-ts'
 
 import {
   AddrChanged,
@@ -26,7 +25,6 @@ import {
 } from './utils'
 
 export function handleApproval(event: ApprovalEvent): void {
-  log.info("****hello3", []);
   let entity = new Approval(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
@@ -92,39 +90,40 @@ export function handleName(node:Bytes, context:Bytes, dnsName:Bytes): void {
   let decoded = decodeName(dnsName)
   if(decoded){    
     let labelName = decoded[0]
-    let labelHex = encodeHex(labelName)    
+    let labelHex = encodeHex(labelName)
     let labelhash = crypto.keccak256(byteArrayFromHex(labelHex)).toHex()
     let name = decoded ? decoded[1] : ''
-    let parentEncoded = decoded ? decoded[3] : ''
-    let parentNode = namehash(Bytes.fromHexString(parentEncoded))
     domain.name = name
     domain.labelName = labelName
     domain.labelhash = Bytes.fromHexString(labelhash)
-    let parentDomainId = createDomainID(parentNode, context);
-    let parentDomain = createDomain(
-      parentNode,
-      context
-    )
-    parentDomain.save()
-    domain.parent = parentDomainId
-    if(parentDomain.name == null){
-      let decodedParent = decodeName(Bytes.fromHexString(parentEncoded))
-      let parentLabelName = decodedParent ? decodedParent[0] : ''
-      let parentLabelHex = encodeHex(parentLabelName)
-      let parentLabelhash = crypto.keccak256(byteArrayFromHex(parentLabelHex)).toHex()
-      let parentName = decodedParent ? decodedParent[1] : ''
-      let parentParentName = decodedParent ? decodedParent[2] : ''
-      parentDomain.name = parentName
-      parentDomain.labelName = parentLabelName
-      parentDomain.labelhash = Bytes.fromHexString(parentLabelhash)
+    if(decoded.length > 2){
+      let parentEncoded = decoded ? decoded[3] : ''
+      let parentNode = namehash(Bytes.fromHexString(parentEncoded))
+      let parentDomainId = createDomainID(parentNode, context);
+      let parentDomain = createDomain(
+        parentNode,
+        context
+      )
+      parentDomain.save()
+      domain.parent = parentDomainId
+      if(parentDomain.name == null){
+        let decodedParent = decodeName(Bytes.fromHexString(parentEncoded))
+        let parentLabelName = decodedParent ? decodedParent[0] : ''
+        let parentLabelHex = encodeHex(parentLabelName)
+        let parentLabelhash = crypto.keccak256(byteArrayFromHex(parentLabelHex)).toHex()
+        let parentName = decodedParent ? decodedParent[1] : ''
+        let parentParentName = decodedParent ? decodedParent[2] : ''
+        parentDomain.name = parentName
+        parentDomain.labelName = parentLabelName
+        parentDomain.labelhash = Bytes.fromHexString(parentLabelhash)
+      }
+      parentDomain.save()  
     }
-    parentDomain.save()
   }
   domain.save()
 }
 
 export function handleAddrChanged(event: AddrChangedEvent): void {
-  log.info("****hello4", []);
   let entity = new AddrChanged(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
@@ -144,7 +143,6 @@ export function handleAddrChanged(event: AddrChangedEvent): void {
   )
   domain.resolvedAddress = event.params.a;
   domain.save()
-  // handleName(event.params.node, context, event.params.name)
   entity.context = context
   entity.node = event.params.node
   entity.a = event.params.a
@@ -155,116 +153,113 @@ export function handleAddrChanged(event: AddrChangedEvent): void {
   entity.save()
 }
 
-// export function handleAddressChanged(event: AddressChangedEvent): void {
-//   let entity = new AddressChanged(
-//     event.transaction.hash.concatI32(event.logIndex.toI32())
-//   )
-//   entity.node = event.params.node
-//   entity.context = event.params.context
-//   entity.name = event.params.name
-//   entity.coinType = event.params.coinType
-//   entity.newAddress = event.params.newAddress
-//   entity.blockNumber = event.block.number
-//   entity.blockTimestamp = event.block.timestamp
-//   entity.transactionHash = event.transaction.hash
-//   entity.save()
-//   let resolver = getOrCreateResolver(
-//     event.params.node,
-//     event.params.context,
-//     event.address,
-//   )
-//   resolver.save();
-//   let domain = createDomain(
-//     event.params.node,
-//     event.params.context,
-//     resolver.id
-//   )
-//   domain.save()
-//   handleName(event.params.node, event.params.context, event.params.name)
-//   let coinType = event.params.coinType
-//   if(resolver.coinTypes == null) {
-//     resolver.coinTypes = [coinType];
-//     resolver.save();
-//   } else {
-//     let coinTypes = resolver.coinTypes!
-//     if(!coinTypes.includes(coinType)){
-//       coinTypes.push(coinType)
-//       resolver.coinTypes = coinTypes
-//       resolver.save()
-//     }
-//   }
-// }
+export function handleAddressChanged(event: AddressChangedEvent): void {
+  let entity = new AddressChanged(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  )
+  let context = Bytes.fromHexString(event.address.toHexString())
+  entity.node = event.params.node
+  entity.context = context
+  entity.coinType = event.params.coinType
+  entity.newAddress = event.params.newAddress
+  entity.blockNumber = event.block.number
+  entity.blockTimestamp = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+  entity.save()
+  let resolver = getOrCreateResolver(
+    event.params.node,
+    context,
+    event.address,
+  )
+  resolver.save();
+  let domain = createDomain(
+    event.params.node,
+    context,
+    resolver.id
+  )
+  domain.save()
+  let coinType = event.params.coinType
+  if(resolver.coinTypes == null) {
+    resolver.coinTypes = [coinType];
+    resolver.save();
+  } else {
+    let coinTypes = resolver.coinTypes!
+    if(!coinTypes.includes(coinType)){
+      coinTypes.push(coinType)
+      resolver.coinTypes = coinTypes
+      resolver.save()
+    }
+  }
+}
 
-// export function handleTextChanged(event: TextChangedEvent): void {
-//   let entity = new TextChanged(
-//     event.transaction.hash.concatI32(event.logIndex.toI32())
-//   )
-//   handleName(event.params.node, event.params.context, event.params.name)
-//   entity.node = event.params.node
-//   entity.context = event.params.context
-//   entity.name = event.params.name
-//   entity.key = event.params.key
+export function handleTextChanged(event: TextChangedEvent): void {
+  let entity = new TextChanged(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  )
+  let context = Bytes.fromHexString(event.address.toHexString())
+  entity.node = event.params.node
+  entity.context = context
+  entity.key = event.params.key
 
-//   entity.blockNumber = event.block.number
-//   entity.blockTimestamp = event.block.timestamp
-//   entity.transactionHash = event.transaction.hash
+  entity.blockNumber = event.block.number
+  entity.blockTimestamp = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
 
-//   entity.save()
+  entity.save()
 
-//   let resolver = getOrCreateResolver(
-//     event.params.node,
-//     event.params.context,
-//     event.address,
-//   )
-//   let key = event.params.key;
-//   if(resolver.texts == null) {
-//     resolver.texts = [key];
-//     resolver.save();
-//   } else {
-//     let texts = resolver.texts!
-//     if(!texts.includes(key)){
-//       texts.push(key)
-//       resolver.texts = texts
-//       resolver.save()
-//     }
-//   }
-//   resolver.save();
-//   let domain = createDomain(
-//     event.params.node,
-//     event.params.context,
-//     resolver.id
-//   )
-//   domain.save()
-// }
+  let resolver = getOrCreateResolver(
+    event.params.node,
+    context,
+    event.address,
+  )
+  let key = event.params.key;
+  if(resolver.texts == null) {
+    resolver.texts = [key];
+    resolver.save();
+  } else {
+    let texts = resolver.texts!
+    if(!texts.includes(key)){
+      texts.push(key)
+      resolver.texts = texts
+      resolver.save()
+    }
+  }
+  resolver.save();
+  let domain = createDomain(
+    event.params.node,
+    context,
+    resolver.id
+  )
+  domain.save()
+}
 
-// export function handleContentHashChanged(event: ContenthashChangedEvent): void {
-//   let entity = new ContenthashChanged(
-//     event.transaction.hash.concatI32(event.logIndex.toI32())
-//   )
-//   handleName(event.params.node, event.params.context, event.params.name)
-//   entity.node = event.params.node
-//   entity.context = event.params.context
-//   entity.name = event.params.name
-//   entity.hash = event.params.hash
-//   entity.blockNumber = event.block.number
-//   entity.blockTimestamp = event.block.timestamp
-//   entity.transactionHash = event.transaction.hash
-//   entity.save()
+export function handleContentHashChanged(event: ContenthashChangedEvent): void {
+  let entity = new ContenthashChanged(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  )
+  let context = Bytes.fromHexString(event.address.toHexString())
+  entity.node = event.params.node
+  entity.context = context
+  entity.hash = event.params.hash
+  entity.blockNumber = event.block.number
+  entity.blockTimestamp = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+  entity.save()
 
-//   let resolver = getOrCreateResolver(
-//     event.params.node,
-//     event.params.context,
-//     event.address,
-//   )
-//   resolver.contentHash = event.params.hash;
-//   resolver.save();
-//   let domain = createDomain(
-//     event.params.node,
-//     event.params.context,
-//     resolver.id
-//   )
-//   domain.save()
-// }
+  let resolver = getOrCreateResolver(
+    event.params.node,
+    context,
+    event.address,
+  )
+  resolver.contentHash = event.params.hash;
+  resolver.save();
+  let domain = createDomain(
+    event.params.node,
+    context,
+    resolver.id
+  )
+  domain.save()
+}
 
 function getOrCreateResolver(node: Bytes, context: Bytes, address: Address): Resolver {
   let id = createResolverID(node, context, address);

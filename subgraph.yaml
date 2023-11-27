@@ -23,4 +23,10 @@ dataSources:
           handler: handleApproval
         - event: AddrChanged(indexed bytes32,address)
           handler: handleAddrChanged
+        - event: AddressChanged(indexed bytes32,uint256,bytes)
+          handler: handleAddressChanged
+        - event: ContenthashChanged(indexed bytes32,bytes)
+          handler: handleContentHashChanged
+        - event: TextChanged(indexed bytes32,indexed string,string,string)
+          handler: handleTextChanged
       file: ./src/l-2-public-resolver.ts
