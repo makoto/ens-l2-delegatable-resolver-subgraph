@@ -30,11 +30,13 @@ export function handleApproval(event: ApprovalEvent): void {
   let entity = new Approval(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
+  log.info("****hello4", [event.params.name.toHexString()]);
   let decoded = decodeName(event.params.name)
   let name = ''
   if(decoded){    
     name = decoded ? decoded[1] : ''
   }
+  log.info("****hello5", [name]);
   let context = Bytes.fromHexString(event.address.toHexString())
   let node = event.params.node
   let operator = event.params.operator
@@ -92,39 +94,40 @@ export function handleName(node:Bytes, context:Bytes, dnsName:Bytes): void {
   let decoded = decodeName(dnsName)
   if(decoded){    
     let labelName = decoded[0]
-    let labelHex = encodeHex(labelName)    
+    let labelHex = encodeHex(labelName)
     let labelhash = crypto.keccak256(byteArrayFromHex(labelHex)).toHex()
     let name = decoded ? decoded[1] : ''
-    let parentEncoded = decoded ? decoded[3] : ''
-    let parentNode = namehash(Bytes.fromHexString(parentEncoded))
     domain.name = name
     domain.labelName = labelName
     domain.labelhash = Bytes.fromHexString(labelhash)
-    let parentDomainId = createDomainID(parentNode, context);
-    let parentDomain = createDomain(
-      parentNode,
-      context
-    )
-    parentDomain.save()
-    domain.parent = parentDomainId
-    if(parentDomain.name == null){
-      let decodedParent = decodeName(Bytes.fromHexString(parentEncoded))
-      let parentLabelName = decodedParent ? decodedParent[0] : ''
-      let parentLabelHex = encodeHex(parentLabelName)
-      let parentLabelhash = crypto.keccak256(byteArrayFromHex(parentLabelHex)).toHex()
-      let parentName = decodedParent ? decodedParent[1] : ''
-      let parentParentName = decodedParent ? decodedParent[2] : ''
-      parentDomain.name = parentName
-      parentDomain.labelName = parentLabelName
-      parentDomain.labelhash = Bytes.fromHexString(parentLabelhash)
+    if(decoded.length > 2){
+      let parentEncoded = decoded ? decoded[3] : ''
+      let parentNode = namehash(Bytes.fromHexString(parentEncoded))
+      let parentDomainId = createDomainID(parentNode, context);
+      let parentDomain = createDomain(
+        parentNode,
+        context
+      )
+      parentDomain.save()
+      domain.parent = parentDomainId
+      if(parentDomain.name == null){
+        let decodedParent = decodeName(Bytes.fromHexString(parentEncoded))
+        let parentLabelName = decodedParent ? decodedParent[0] : ''
+        let parentLabelHex = encodeHex(parentLabelName)
+        let parentLabelhash = crypto.keccak256(byteArrayFromHex(parentLabelHex)).toHex()
+        let parentName = decodedParent ? decodedParent[1] : ''
+        let parentParentName = decodedParent ? decodedParent[2] : ''
+        parentDomain.name = parentName
+        parentDomain.labelName = parentLabelName
+        parentDomain.labelhash = Bytes.fromHexString(parentLabelhash)
+      }
+      parentDomain.save()  
     }
-    parentDomain.save()
   }
   domain.save()
 }
 
 export function handleAddrChanged(event: AddrChangedEvent): void {
-  log.info("****hello4", []);
   let entity = new AddrChanged(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
