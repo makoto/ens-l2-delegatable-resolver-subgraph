@@ -4,10 +4,10 @@ schema:
 dataSources:
   - kind: ethereum
     name: DelegatableResolver
-    network: base-sepolia
+    network: arbitrum-sepolia
     source:
       abi: DelegatableResolver
-      startBlock: 4074750
+      startBlock: 4072403
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -32,10 +32,10 @@ dataSources:
       file: ./src/l-2-public-resolver.ts
   - kind: ethereum
     name: L2ReverseRegistrar
-    network: base-sepolia
+    network: arbitrum-sepolia
     source:
       abi: L2ReverseRegistrar
-      startBlock: 4074750
+      startBlock: 4072403
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
