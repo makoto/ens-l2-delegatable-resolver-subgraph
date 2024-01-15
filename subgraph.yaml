@@ -29,3 +29,28 @@ dataSources:
         - event: TextChanged(indexed bytes32,indexed string,string,string)
           handler: handleTextChanged
       file: ./src/l-2-public-resolver.ts
+  - kind: ethereum
+    name: L2ReverseRegistrar
+    network: mainnet
+    source:
+      abi: L2ReverseRegistrar
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - TextChanged
+        - NameChanged
+        - ReverseClaimed
+      abis:
+        - name: L2ReverseRegistrar
+          file: ./abis/L2ReverseRegistrar.json
+      eventHandlers:
+        - event: TextChanged(indexed bytes32,indexed string,string,string)
+          handler: handleTextChanged
+        - event: "NameChanged(indexed bytes32,string)"
+          handler: handleNameChanged
+        - event: "ReverseClaimed(indexed address,indexed bytes32)"
+          handler: handleReverseClaimed
+      file: ./src/l-2-reverse-registrar.ts
+      

@@ -24,6 +24,7 @@ type Resolver @entity {
   contentHash: Bytes
   texts: [String!]
   coinTypes: [BigInt!]
+  name: String
 }
 
 type Account @entity {
@@ -32,6 +33,7 @@ type Account @entity {
   "The domains under the context of the account"
   contexts: [Domain!]! @derivedFrom(field: "owner")
   delegated: [Domain!]! @derivedFrom(field: "delegates")
+  domain: Domain
 }
 
 type AddrChanged @entity(immutable: true) {
@@ -84,6 +86,28 @@ type Approval @entity(immutable: true) {
   node: Bytes # bytes32
   operator: Bytes! # address
   approved: Boolean! # boolean
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type NameChanged @entity(immutable: true) {
+  id: Bytes!
+  context: Bytes! # bytes32
+  node: Bytes! # bytes32
+  indexedKey: String # string
+  name: String! # string
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ReverseClaimed @entity(immutable: true) {
+  id: Bytes!
+  context: Bytes! # bytes32
+  node: Bytes! # bytes32
+  indexedKey: String # string
+  addr: Bytes! # bytes
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
